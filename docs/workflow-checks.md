@@ -2,6 +2,8 @@
 
 Every time a user is assigned to a `presentation-slot` issue, the workflow runs the following checks in order. The first failure removes the assignee and posts a comment explaining why.
 
+> **Note on multi-team membership:** Checks 3 and 4 evaluate the assignee against **all** org teams they belong to, not just the first one. This ensures correct behaviour even if a user is a member of more than one team.
+
 ## Flowchart
 
 ```mermaid
@@ -13,17 +15,17 @@ flowchart TD
     S -- Yes --> SR[Remove new assignee]
     SR --> SF([⚠️ Only one person per slot.\nAssignment automatically removed.])
 
-    S -- No --> D{Check 2\nIs assignee in\nan org team?}
+    S -- No --> D{Check 2\nIs assignee in\nany org team?}
 
     D -- No --> E[Remove assignee]
     E --> F([⚠️ Assignment rejected.\nNot a member of any registered team.])
 
-    D -- Yes --> G{Check 3\nIs the slot's marker\nthe team's own mentor?}
+    D -- Yes --> G{Check 3\nFor ANY of the assignee's teams —\nis that team's mentor\nthe slot's marker?}
 
     G -- Yes --> H[Remove assignee]
     H --> I([⚠️ Self-marking rejected.\nTeams cannot be marked by their own mentor.])
 
-    G -- No --> J{Check 4\nDoes this team already\nhold another open slot?}
+    G -- No --> J{Check 4\nDoes ANY of the assignee's teams\nalready hold another open slot?}
 
     J -- Yes --> K[Remove assignee]
     K --> L([⚠️ Team already allocated.\nUnallocate the existing slot first.])
@@ -50,7 +52,8 @@ flowchart TD
 **Question:** Is the assignee a member of any org team?
 
 - Fetches all teams in the org and checks membership for the assignee against each one.
-- **Pass:** team found → continue to next check.
+- All matching teams are collected and carried forward into subsequent checks.
+- **Pass:** at least one team found → continue.
 - **Fail → removes assignee, comments:**
   > ⚠️ Assignment rejected. @{handle} is not a member of any registered team in this org. Only student team members can claim a presentation slot.
 
@@ -58,27 +61,27 @@ flowchart TD
 
 ## Check 3 — Self-marking prevention
 
-**Question:** Is this slot's marker the assignee's team's own mentor?
+**Question:** For any of the assignee's teams, is that team's mentor the slot's marker?
 
-- Reads `data/teams.csv` to find the claiming team's mentor GitHub handle (e.g. `test-team1` → `octocat`).
-- Reads `<!-- marker-handle: ... -->` from the issue body to get the slot's assigned marker handle.
-- If they match, the team would be marked by their own mentor — not allowed.
-- **Pass:** mentor ≠ marker → continue to next check.
+- Reads `data/teams.csv` to look up the mentor GitHub handle for **each** team the assignee belongs to.
+- Reads `<!-- marker-handle: ... -->` from the issue body to get the slot's marker handle.
+- If the mentor of **any** of the assignee's teams matches the marker, the assignment is rejected. This prevents the check from being bypassed by a user who belongs to multiple teams.
+- **Pass:** no team's mentor matches the marker → continue.
 - **Fail → removes assignee, comments:**
-  > ⚠️ Self-marking rejected. @{handle}'s team (test-team1) is mentored by @octocat, who is the marker for this slot. Teams cannot be marked by their own mentor.
+  > ⚠️ Self-marking rejected. @{handle}'s team ({team}) is mentored by @{mentor}, who is the marker for this slot. Teams cannot be marked by their own mentor.
 
 ---
 
 ## Check 4 — Double-booking
 
-**Question:** Does the claiming team already hold another open slot?
+**Question:** Does any of the assignee's teams already hold another open slot?
 
 - Fetches all open `presentation-slot` issues.
-- For each other issue that has assignees, resolves which team those assignees belong to.
-- If any match the claiming team, they already have a slot booked.
-- **Pass:** no other slot held → continue.
+- For each other issue that has an assignee, resolves all teams that assignee belongs to.
+- Compares against all teams the new assignee belongs to — a collision on **any** shared team triggers rejection.
+- **Pass:** no overlapping team holds another slot → continue.
 - **Fail → removes assignee, comments:**
-  > ⚠️ Team already allocated! test-team1 has already been assigned a presentation slot in #2 — …. Please unallocate that slot before assigning to a new one. @{handle}'s assignment has been automatically removed.
+  > ⚠️ Team already allocated! {team} has already been assigned a presentation slot in #{number} — {title}. Please unallocate that slot before assigning to a new one. @{handle}'s assignment has been automatically removed.
 
 ---
 
@@ -86,4 +89,4 @@ flowchart TD
 
 If all four checks pass, the slot is confirmed:
 
-> ✅ Slot confirmed for test-team1. @{handle} has claimed this slot on behalf of their team.
+> ✅ Slot confirmed for {team(s)}. @{handle} has claimed this slot on behalf of their team.
