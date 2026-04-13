@@ -1,0 +1,16 @@
+{
+  "name": "comp90082-presentations",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Presentation slot allocation for COMP90082 via GitHub Issues + Project v2.",
+  "scripts": {
+    "setup": "node scripts/setup-labels.js",
+    "seed": "node scripts/create-issues.js"
+  },
+  "dependencies": {
+    "@octokit/graphql": "^7.1.0",
+    "@octokit/rest": "^20.1.1",
+    "csv-parse": "^5.5.6",
+    "dotenv": "^16.4.5"
+  }
+}

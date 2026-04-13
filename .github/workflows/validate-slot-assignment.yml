@@ -1,0 +1,153 @@
+name: Validate slot assignment
+
+on:
+  issues:
+    types: [assigned]
+
+jobs:
+  validate:
+    if: contains(github.event.issue.labels.*.name, 'presentation-slot')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECT_PAT }}
+          script: |
+            const fs = require('fs');
+
+            // Minimal CSV parser for data/teams.csv (no quoting, simple comma split).
+            function parseCsv(text) {
+              const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+              const headers = lines.shift().split(',').map((h) => h.trim());
+              return lines.map((line) => {
+                const cells = line.split(',').map((c) => c.trim());
+                return Object.fromEntries(headers.map((h, i) => [h, cells[i] || '']));
+              });
+            }
+
+            const issue = context.payload.issue;
+            const assignee = context.payload.assignee && context.payload.assignee.login;
+            const org = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = issue.number;
+
+            if (!assignee) {
+              core.info('No assignee in payload — nothing to validate.');
+              return;
+            }
+
+            const removeAssignee = () =>
+              github.rest.issues.removeAssignees({
+                owner: org, repo, issue_number: issueNumber, assignees: [assignee],
+              });
+
+            const postComment = (body) =>
+              github.rest.issues.createComment({
+                owner: org, repo, issue_number: issueNumber, body,
+              });
+
+            // --- 1. Single-assignee check ---
+            // The payload's issue.assignees reflects state AFTER the new assignment,
+            // so length > 1 means someone else was already assigned.
+            const existing = (issue.assignees || []).filter((a) => a.login !== assignee);
+            if (existing.length > 0) {
+              await removeAssignee();
+              await postComment(
+                `⚠️ Only one person can be assigned to a presentation slot at a time. @${existing[0].login} has already claimed this slot. @${assignee}'s assignment has been automatically removed.`,
+              );
+              return;
+            }
+
+            // --- 2. Team-membership check ---
+            const teams = await github.paginate(github.rest.teams.list, {
+              org, per_page: 100,
+            });
+
+            const membershipCache = new Map(); // key: `${slug}:${login}` -> boolean
+            async function isMember(slug, login) {
+              const key = `${slug}:${login}`;
+              if (membershipCache.has(key)) return membershipCache.get(key);
+              try {
+                const { data } = await github.rest.teams.getMembershipForUserInOrg({
+                  org, team_slug: slug, username: login,
+                });
+                const ok = data.state === 'active';
+                membershipCache.set(key, ok);
+                return ok;
+              } catch (err) {
+                if (err.status === 404) {
+                  membershipCache.set(key, false);
+                  return false;
+                }
+                throw err;
+              }
+            }
+
+            async function findTeamFor(login) {
+              for (const t of teams) {
+                if (await isMember(t.slug, login)) return t;
+              }
+              return null;
+            }
+
+            const team = await findTeamFor(assignee);
+            if (!team) {
+              await removeAssignee();
+              await postComment(
+                `⚠️ Assignment rejected. @${assignee} is not a member of any registered team in this org. Only student team members can claim a presentation slot.`,
+              );
+              return;
+            }
+
+            // --- 2. Self-marking check ---
+            let mentorGithub = null;
+            try {
+              const csv = fs.readFileSync('data/teams.csv', 'utf8');
+              const rows = parseCsv(csv);
+              const match = rows.find(
+                (r) => r.team_name.toLowerCase() === team.name.toLowerCase(),
+              );
+              mentorGithub = match ? match.mentor_github : null;
+            } catch (err) {
+              core.warning(`Could not read data/teams.csv: ${err.message}`);
+            }
+
+            const markerMatch = issue.body && issue.body.match(/<!--\s*marker-handle:\s*(\S+?)\s*-->/);
+            const markerHandle = markerMatch ? markerMatch[1] : null;
+
+            if (mentorGithub && markerHandle &&
+                mentorGithub.toLowerCase() === markerHandle.toLowerCase()) {
+              await removeAssignee();
+              await postComment(
+                `⚠️ Self-marking rejected. @${assignee}'s team (${team.name}) is mentored by @${mentorGithub}, who is the marker for this slot. Teams cannot be marked by their own mentor.`,
+              );
+              return;
+            }
+
+            // --- 3. Double-booking check ---
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: org, repo, state: 'open', labels: 'presentation-slot', per_page: 100,
+            });
+
+            for (const other of openIssues) {
+              if (other.number === issueNumber) continue;
+              if (other.pull_request) continue;
+              if (!other.assignees || other.assignees.length === 0) continue;
+              for (const a of other.assignees) {
+                const otherTeam = await findTeamFor(a.login);
+                if (otherTeam && otherTeam.slug === team.slug) {
+                  await removeAssignee();
+                  await postComment(
+                    `⚠️ Team already allocated! ${team.name} has already been assigned a presentation slot in #${other.number} — ${other.title}. Please unallocate that slot before assigning to a new one. @${assignee}'s assignment has been automatically removed.`,
+                  );
+                  return;
+                }
+              }
+            }
+
+            // --- 4. All clear ---
+            await postComment(
+              `✅ Slot confirmed for ${team.name}. @${assignee} has claimed this slot on behalf of their team.`,
+            );
