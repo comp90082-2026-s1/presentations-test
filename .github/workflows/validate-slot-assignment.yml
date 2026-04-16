@@ -163,7 +163,7 @@ jobs:
             }
 
             // --- 4. All clear ---
-            const teamNames = assigneeTeams.map((t) => t.name).join(', ');
+            const claimingTeam = assigneeTeams[0]; // one slot = one assignee = one team
             await postComment(
-              `✅ Slot confirmed for ${teamNames}. @${assignee} has claimed this slot on behalf of their team.`,
+              `✅ Slot confirmed for ${claimingTeam.name}. @${assignee} has claimed this slot on behalf of their team.\n\n@${org}/${claimingTeam.slug} — your team has been allocated this presentation slot.`,
             );
