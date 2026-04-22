@@ -1,6 +1,6 @@
 # Presentation Slot — One-Page Cheatsheet
 
-Pick your team's presentation slot by **assigning yourself** to a GitHub issue on the project board. Only one person per team needs to do this — once anyone on your team claims a slot, the team is booked.
+Pick your team's presentation slot by **assigning yourself** to a GitHub issue on the project board. **Only one person per team needs to do this** — once anyone on your team claims a slot, the team is booked.
 
 ## Claim a slot in 4 steps
 
@@ -33,8 +33,7 @@ Go back to the issue you claimed → **Assignees** → remove yourself. The slot
 
 ## Stuck?
 
-<!-- TODO: fill in your contact line, e.g. Slack channel / email -->
-Contact the Michael or the teaching team via Ed Discussion/ Email.
+Post on our [Ed discussion board](https://edstem.org/au/courses/30767/discussion).
 
 ---
 
