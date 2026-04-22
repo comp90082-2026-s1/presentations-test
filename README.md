@@ -58,9 +58,13 @@ Add it at **Settings → Secrets and variables → Actions → New repository se
 
 1. Open the Issues tab and find an unassigned `presentation-slot` issue.
 2. One team member assigns themselves (right sidebar → Assignees).
-3. Within seconds the action comments:
+3. Within 15–30 seconds the action comments:
    - `✅ Slot confirmed for {TeamName}.` — you're booked.
    - `⚠️ …` — the assignment was removed; read the comment for the reason.
+
+Student-facing docs:
+- [docs/student-cheatsheet.md](docs/student-cheatsheet.md) — one-page quick reference.
+- [docs/student-guide.md](docs/student-guide.md) — full walkthrough with screenshots and troubleshooting.
 
 ## Maintaining `data/teams.csv`
 

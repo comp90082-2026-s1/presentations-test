@@ -1,0 +1,41 @@
+# Presentation Slot — One-Page Cheatsheet
+
+Pick your team's presentation slot by **assigning yourself** to a GitHub issue on the project board. Only one person per team needs to do this — once anyone on your team claims a slot, the team is booked.
+
+## Claim a slot in 4 steps
+
+1. **Open the board** → [Project #61](https://github.com/orgs/comp90082-2026-s1/projects/61)
+2. **Find an unassigned slot.** Use the filter `no:assignee label:presentation-slot is:open` in the Issues tab, or look for slots with no avatar in the Assignees column on the board.
+3. **Open the issue → right sidebar → Assignees → assign yourself.** Click your own name.
+4. **Wait 15–30 seconds.** A bot comment will appear on the issue, and you'll get an email. Refresh if you don't see it.
+
+## Rules
+
+- **One slot per team.** Whichever teammate claims it, the whole team is booked.
+- **First-come, first-served.** One person per slot; if someone else got there first, you'll be automatically unassigned.
+- **No self-marking.** You can't claim a slot being marked by your own team's mentor — pick one marked by a different tutor.
+
+## What the bot comment means
+
+| Comment starts with… | Meaning | What to do |
+| --- | --- | --- |
+| ✅ **Slot confirmed** | Booked. Your team is @-mentioned on the next line. | Nothing. You're done. |
+| ⚠️ **Only one person can be assigned** | Someone else beat you to it (maybe your teammate). | Check who it is. If it's your teammate, you're booked. Otherwise, pick another slot. |
+| ⚠️ **Assignment rejected … not a member** | Your GitHub account isn't in any team yet. | Contact teaching staff to be added to your org team. |
+| ⚠️ **Self-marking rejected** | This slot's marker is your own team's mentor. | Pick any other slot. |
+| ⚠️ **Team already allocated** | Your team already holds another slot. | Either keep that one, or unassign from it first, then claim this one. |
+
+On any ⚠️, you'll have been **automatically unassigned** — just try again on a different slot.
+
+## Changing your mind
+
+Go back to the issue you claimed → **Assignees** → remove yourself. The slot is now free and you (or a teammate) can claim a different one.
+
+## Stuck?
+
+<!-- TODO: fill in your contact line, e.g. Slack channel / email -->
+Contact the Michael or the teaching team via Ed Discussion/ Email.
+
+---
+
+Full walkthrough with screenshots: [**docs/student-guide.md**](student-guide.md).
