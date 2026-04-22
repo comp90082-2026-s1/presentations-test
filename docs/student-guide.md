@@ -18,22 +18,17 @@ Your team will present to a marker (a tutor from another team) during the schedu
 
 ## Step-by-step
 
-### 1. Open the project board
+### 1. Open the project board (unassigned slots only)
 
-Go to **[Project #61](https://github.com/orgs/comp90082-2026-s1/projects/61)**. Each row is a presentation slot with its date, time, marker, and location.
+Go to **[Project #61 — unassigned view](https://github.com/orgs/comp90082-2026-s1/projects/61/views/1?filterQuery=no%3Aassignee)**. Every row you see here is still free to claim; each is a presentation slot with its date, time, marker, and location.
 
 ![Project board view](images/01-board-view.png)
 
-> **Tip:** If you'd rather work from the Issues tab, the filter `is:open label:presentation-slot no:assignee` shows only slots that are still free.
+> **Tip:** To see the full board including already-claimed slots, open [Project #61](https://github.com/orgs/comp90082-2026-s1/projects/61) without the filter. Or from the Issues tab, the filter `is:open label:presentation-slot no:assignee` does the same job.
 
-### 2. Find an unassigned slot
+### 2. Pick a slot
 
-An unassigned slot has no avatar in the **Assignees** column. Pick one that:
-
-- Works for your whole team, and
-- Is **not** marked by your own team's mentor (the bot will reject it if you try).
-
-Click the row to open the issue.
+Pick one that works for your whole team. Remember: you can't claim a slot being marked by your own team's mentor — the bot will reject it if you try. Click the row to open the issue.
 
 ### 3. Assign yourself
 
