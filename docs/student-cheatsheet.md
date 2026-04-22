@@ -4,7 +4,7 @@ Pick your team's presentation slot by **assigning yourself** to a GitHub issue o
 
 ## Claim a slot in 4 steps
 
-1. **Open the board — unassigned slots only** → [Project #61 (unassigned view)](https://github.com/orgs/comp90082-2026-s1/projects/61/views/1?filterQuery=no%3Aassignee). Every row you see here is still free to claim.
+1. **Open the board — unassigned slots only** → [Project #61 (unassigned view)](https://github.com/orgs/comp90082-2026-s1/projects/61/views/1?filterQuery=no%3Aassignee). Every row here is still free to claim. **Only unassigned slots can be claimed** — if you remove the filter and try to pick a slot that already has an assignee, the bot will automatically unassign you.
 2. **Pick a slot** that works for your whole team.
 3. **Open the issue → right sidebar → Assignees → assign yourself.** Click your own name.
 4. **Wait 15–30 seconds.** A bot comment will appear on the issue, and you'll get an email. Refresh if you don't see it.

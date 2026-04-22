@@ -22,6 +22,8 @@ Your team will present to a marker (a tutor from another team) during the schedu
 
 Go to **[Project #61 — unassigned view](https://github.com/orgs/comp90082-2026-s1/projects/61/views/1?filterQuery=no%3Aassignee)**. Every row you see here is still free to claim; each is a presentation slot with its date, time, marker, and location.
 
+**Only unassigned slots can be claimed.** The view above already filters these in; if you remove the filter and try to pick a slot that someone else already holds, the bot will automatically unassign you and post a "⚠️ Only one person can be assigned" comment.
+
 ![Project board view](images/01-board-view.png)
 
 > **Tip:** To see the full board including already-claimed slots, open [Project #61](https://github.com/orgs/comp90082-2026-s1/projects/61) without the filter. Or from the Issues tab, the filter `is:open label:presentation-slot no:assignee` does the same job.
