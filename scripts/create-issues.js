@@ -13,13 +13,13 @@ function buildTitle({ date, time, marker_name }) {
   return `Presentation Slot — ${date} ${time} | Marker: ${marker_name}`;
 }
 
-function buildBody({ date, time, marker_name, marker_github, zoom_link }) {
-  const zoomLine = zoom_link ? `**Zoom/Room:** ${zoom_link}\n` : "";
+function buildBody({ date, time, marker_name, marker_github, location }) {
+  const locationLine = location ? `**Location:** ${location}\n` : "";
   return [
     `**Date:** ${date}`,
     `**Time:** ${time}`,
     `**Marker:** ${marker_name} (@${marker_github})`,
-    zoomLine.trimEnd(),
+    locationLine.trimEnd(),
     "",
     "Students: assign yourself to this issue to claim this slot for your team.",
     "",
