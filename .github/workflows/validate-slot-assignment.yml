@@ -7,6 +7,13 @@ on:
 jobs:
   validate:
     if: contains(github.event.issue.labels.*.name, 'presentation-slot')
+    # Coalesce spam on a single (issue, assignee) pair: a new assign event from
+    # the same user on the same issue cancels the previous in-flight run, since
+    # only the latest one matters. Different users racing for the same issue use
+    # different groups, so neither cancels the other.
+    concurrency:
+      group: validate-slot-${{ github.event.issue.number }}-${{ github.event.assignee.login }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
