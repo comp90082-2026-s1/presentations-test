@@ -78,33 +78,31 @@ jobs:
               }
 
               // --- 2. Team-membership check ---
-              // Pre-fetch every team's members in one O(teams) pass instead of doing
-              // O(teams × users) per-user membership lookups. Each lookup costs ~1 REST
-              // call; the per-user variant burned through the 5000/hr PAT cap during
-              // the last cohort's burst of simultaneous assignments.
-              const teams = await withRetry('list teams', () =>
-                github.paginate(github.rest.teams.list, { org, per_page: 100 }),
-              );
-
-              const teamMembers = new Map();
-              for (const t of teams) {
-                const members = await withRetry(`list members of ${t.slug}`, () =>
-                  github.paginate(github.rest.teams.listMembersInOrg, {
-                    org, team_slug: t.slug, per_page: 100,
-                  }),
+              // Memberships come from a committed snapshot (data/team-members.json),
+              // refreshed manually via `npm run snapshot-teams`. This avoids per-run
+              // org/team API calls that previously exhausted the PAT's 5000/hr cap during
+              // burst clicks. Memberships are stable across the semester, so a snapshot
+              // is acceptable; staff must re-run the script if students change teams.
+              let snapshot;
+              try {
+                snapshot = JSON.parse(fs.readFileSync('data/team-members.json', 'utf8'));
+              } catch (err) {
+                throw new Error(
+                  `Could not load data/team-members.json (${err.message}). Run 'npm run snapshot-teams' and commit the result before validation can run.`,
                 );
-                teamMembers.set(t.slug, new Set(members.map((m) => m.login)));
               }
+              const teams = snapshot.teams; // [{ name, slug, members: [...] }]
+              const memberSets = new Map(teams.map((t) => [t.slug, new Set(t.members)]));
 
               function findAllTeamsFor(login) {
-                return teams.filter((t) => teamMembers.get(t.slug).has(login));
+                return teams.filter((t) => memberSets.get(t.slug).has(login));
               }
 
               const assigneeTeams = findAllTeamsFor(assignee);
               if (assigneeTeams.length === 0) {
                 await removeAssignee();
                 await postComment(
-                  `⚠️ Assignment rejected. @${assignee} is not a member of any registered team in this org. Only student team members can claim a presentation slot.`,
+                  `⚠️ Assignment rejected. @${assignee} is not a member of any registered team in this org. (If you've recently joined a team, ask the instructor to refresh the team membership snapshot.) Only student team members can claim a presentation slot.`,
                 );
                 return;
               }

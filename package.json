@@ -5,7 +5,8 @@
   "description": "Presentation slot allocation for COMP90082 via GitHub Issues + Project v2.",
   "scripts": {
     "setup": "node scripts/setup-labels.js",
-    "seed": "node scripts/create-issues.js"
+    "seed": "node scripts/create-issues.js",
+    "snapshot-teams": "node scripts/snapshot-team-members.js"
   },
   "dependencies": {
     "@octokit/graphql": "^7.1.0",
