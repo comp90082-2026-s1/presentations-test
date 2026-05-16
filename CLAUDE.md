@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run setup` — create the `presentation-slot` label on the repo (idempotent).
 - `npm run seed` — create one GitHub issue per row in `data/slots.csv`, add each to Project v2, and populate the **Marker** field. Idempotent: skips issues whose title already exists.
 - `npm run snapshot-teams` — fetch every org team's members and write the result to `data/team-members.json`. The validation workflow reads this file at runtime instead of calling the team APIs, so it must be re-run **and committed** whenever students change teams (typically: once at start of semester after team formation, plus any later org-team changes).
+- `npm run mark-sprint` — retroactively apply a `sprint-N` label to all **closed** `presentation-slot` issues. Requires `SPRINT=<number>` in env (e.g. `SPRINT=2 npm run mark-sprint`), or pass as an argument: `node scripts/mark-sprint.js 2`. Idempotent. Also add a `sprint` column to `data/slots.csv` for the seed script to auto-label future issues on creation.
 
 Scripts require `.env` with `GITHUB_TOKEN`, plus `PROJECT_OWNER`/`PROJECT_NUMBER` for `npm run seed` (see `.env.example`). Owner/repo (and the org used for snapshotting) is auto-derived from `git remote get-url origin` (see `scripts/_repo.js`) — the `PROJECT_*` vars are only for the Project v2 board, which may live in a different org.
 
@@ -17,7 +18,7 @@ There are no tests, no linter, and no build. Work is validated by running the se
 
 This is not a typical application — it's a **GitHub-native workflow**. The "runtime" is GitHub itself:
 
-- **Seeding (local, one-shot):** `scripts/create-issues.js` reads `data/slots.csv` and creates one labelled issue per slot. The marker's GitHub handle is embedded in the issue body as an HTML comment: `<!-- marker-handle: {handle} -->`. This comment is the **only** source of truth the Action uses to identify the slot's marker.
+- **Seeding (local, one-shot):** `scripts/create-issues.js` reads `data/slots.csv` and creates one labelled issue per slot. The marker's GitHub handle is embedded in the issue body as an HTML comment: `<!-- marker-handle: {handle} -->`. This comment is the **only** source of truth the Action uses to identify the slot's marker. When `data/slots.csv` includes a `sprint` column, the seeder also applies a `sprint-N` label to each new issue (creating it on the repo if absent). Use `npm run mark-sprint` to retroactively label issues seeded before this column existed.
 - **Validation (GitHub Actions, per assignment):** `.github/workflows/validate-slot-assignment.yml` triggers on `issues.assigned` for `presentation-slot` issues. It's a single inline `actions/github-script` block containing all validation logic; there is no separate JS module for the action.
 
 ### The two sources of truth

@@ -31,6 +31,22 @@ function buildBody({ date, time, marker_name, marker_github, location }) {
     .replace(/\n{3,}/g, "\n\n");
 }
 
+async function ensureSprintLabel(octokit, owner, repo, sprint) {
+  const name = `sprint-${sprint}`;
+  try {
+    await octokit.issues.getLabel({ owner, repo, name });
+  } catch (err) {
+    if (err.status !== 404) throw err;
+    await octokit.issues.createLabel({
+      owner, repo, name,
+      color: "e4e669",
+      description: `Sprint ${sprint} presentation slots`,
+    });
+    console.log(`✅ Created label '${name}'.`);
+  }
+  return name;
+}
+
 async function fetchExistingTitles(octokit, owner, repo) {
   const titles = new Set();
   for await (const { data } of octokit.paginate.iterator(
@@ -128,6 +144,12 @@ async function main() {
   const existingTitles = await fetchExistingTitles(octokit, owner, repo);
   const { projectId, markerField } = await resolveProject(gql, projectOwner, projectNumber);
 
+  const sprintLabels = {};
+  const uniqueSprints = [...new Set(rows.map((r) => r.sprint).filter(Boolean))];
+  for (const sprint of uniqueSprints) {
+    sprintLabels[sprint] = await ensureSprintLabel(octokit, owner, repo, sprint);
+  }
+
   let created = 0;
   let skipped = 0;
   for (const row of rows) {
@@ -137,12 +159,14 @@ async function main() {
       skipped++;
       continue;
     }
+    const sprintLabel = sprintLabels[row.sprint];
+    const labels = sprintLabel ? [LABEL, sprintLabel] : [LABEL];
     const { data: issue } = await octokit.issues.create({
       owner,
       repo,
       title,
       body: buildBody(row),
-      labels: [LABEL],
+      labels,
     });
     try {
       const itemId = await addToProject(gql, projectId, issue.node_id);
