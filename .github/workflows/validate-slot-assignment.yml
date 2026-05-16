@@ -7,6 +7,13 @@ on:
 jobs:
   validate:
     if: contains(github.event.issue.labels.*.name, 'presentation-slot')
+    # Coalesce spam on a single (issue, assignee) pair: a new assign event from
+    # the same user on the same issue cancels the previous in-flight run, since
+    # only the latest one matters. Different users racing for the same issue use
+    # different groups, so neither cancels the other.
+    concurrency:
+      group: validate-slot-${{ github.event.issue.number }}-${{ github.event.assignee.login }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,122 +55,136 @@ jobs:
                 owner: org, repo, issue_number: issueNumber, body,
               });
 
-            // --- 1. Single-assignee check ---
-            // The payload's issue.assignees reflects state AFTER the new assignment,
-            // so length > 1 means someone else was already assigned.
-            const existing = (issue.assignees || []).filter((a) => a.login !== assignee);
-            if (existing.length > 0) {
-              await removeAssignee();
-              await postComment(
-                `⚠️ Only one person can be assigned to a presentation slot at a time. @${existing[0].login} has already claimed this slot. @${assignee}'s assignment has been automatically removed.`,
-              );
-              return;
-            }
-
-            // --- 2. Team-membership check ---
-            const teams = await github.paginate(github.rest.teams.list, {
-              org, per_page: 100,
-            });
-
-            const membershipCache = new Map(); // key: `${slug}:${login}` -> boolean
-            async function isMember(slug, login) {
-              const key = `${slug}:${login}`;
-              if (membershipCache.has(key)) return membershipCache.get(key);
+            // Single retry on rate-limit (403/429), respecting Retry-After when present.
+            // Without this, the previous workflow failed silently on the 5000/hr PAT cap
+            // and left the would-be-rejected assignment intact.
+            async function withRetry(label, fn) {
               try {
-                const { data } = await github.rest.teams.getMembershipForUserInOrg({
-                  org, team_slug: slug, username: login,
-                });
-                const ok = data.state === 'active';
-                membershipCache.set(key, ok);
-                return ok;
+                return await fn();
               } catch (err) {
-                if (err.status === 404) {
-                  membershipCache.set(key, false);
-                  return false;
-                }
-                throw err;
+                if (err.status !== 403 && err.status !== 429) throw err;
+                const retryAfter = err.response && err.response.headers && err.response.headers['retry-after'];
+                const wait = retryAfter ? parseInt(retryAfter, 10) * 1000 : 60000;
+                core.warning(`${label}: rate-limited (status ${err.status}); sleeping ${wait}ms before retry.`);
+                await new Promise((r) => setTimeout(r, wait));
+                return await fn();
               }
             }
 
-            async function findAllTeamsFor(login) {
-              const matched = [];
-              for (const t of teams) {
-                if (await isMember(t.slug, login)) matched.push(t);
-              }
-              return matched;
-            }
-
-            // findTeamFor used by double-booking check — returns first match (stable for that check)
-            async function findTeamFor(login) {
-              const all = await findAllTeamsFor(login);
-              return all.length > 0 ? all[0] : null;
-            }
-
-            const assigneeTeams = await findAllTeamsFor(assignee);
-            if (assigneeTeams.length === 0) {
-              await removeAssignee();
-              await postComment(
-                `⚠️ Assignment rejected. @${assignee} is not a member of any registered team in this org. Only student team members can claim a presentation slot.`,
-              );
-              return;
-            }
-
-            // --- 2. Self-marking check ---
-            // Checks ALL teams the assignee belongs to — if any team's mentor is this slot's
-            // marker, the assignment is rejected.
-            const markerMatch = issue.body && issue.body.match(/<!--\s*marker-handle:\s*(\S+?)\s*-->/);
-            const markerHandle = markerMatch ? markerMatch[1] : null;
-
-            if (markerHandle) {
-              let teamsRows = [];
-              try {
-                const csv = fs.readFileSync('data/teams.csv', 'utf8');
-                teamsRows = parseCsv(csv);
-              } catch (err) {
-                core.warning(`Could not read data/teams.csv: ${err.message}`);
-              }
-
-              for (const t of assigneeTeams) {
-                const row = teamsRows.find(
-                  (r) => r.team_name.toLowerCase() === t.name.toLowerCase(),
+            try {
+              // --- 1. Single-assignee check ---
+              // The payload's issue.assignees reflects state AFTER the new assignment,
+              // so length > 1 means someone else was already assigned.
+              const existing = (issue.assignees || []).filter((a) => a.login !== assignee);
+              if (existing.length > 0) {
+                await removeAssignee();
+                await postComment(
+                  `⚠️ Only one person can be assigned to a presentation slot at a time. @${existing[0].login} has already claimed this slot. @${assignee}'s assignment has been automatically removed.`,
                 );
-                const mentorGithub = row ? row.mentor_github : null;
-                if (mentorGithub && mentorGithub.toLowerCase() === markerHandle.toLowerCase()) {
-                  await removeAssignee();
-                  await postComment(
-                    `⚠️ Self-marking rejected. @${assignee}'s team (${t.name}) is mentored by @${mentorGithub}, who is the marker for this slot. Teams cannot be marked by their own mentor.`,
+                return;
+              }
+
+              // --- 2. Team-membership check ---
+              // Memberships come from a committed snapshot (data/team-members.json),
+              // refreshed manually via `npm run snapshot-teams`. This avoids per-run
+              // org/team API calls that previously exhausted the PAT's 5000/hr cap during
+              // burst clicks. Memberships are stable across the semester, so a snapshot
+              // is acceptable; staff must re-run the script if students change teams.
+              let snapshot;
+              try {
+                snapshot = JSON.parse(fs.readFileSync('data/team-members.json', 'utf8'));
+              } catch (err) {
+                throw new Error(
+                  `Could not load data/team-members.json (${err.message}). Run 'npm run snapshot-teams' and commit the result before validation can run.`,
+                );
+              }
+              const teams = snapshot.teams; // [{ name, slug, members: [...] }]
+              const memberSets = new Map(teams.map((t) => [t.slug, new Set(t.members)]));
+
+              function findAllTeamsFor(login) {
+                return teams.filter((t) => memberSets.get(t.slug).has(login));
+              }
+
+              const assigneeTeams = findAllTeamsFor(assignee);
+              if (assigneeTeams.length === 0) {
+                await removeAssignee();
+                await postComment(
+                  `⚠️ Assignment rejected. @${assignee} is not a member of any registered team in this org. (If you've recently joined a team, ask the instructor to refresh the team membership snapshot.) Only student team members can claim a presentation slot.`,
+                );
+                return;
+              }
+
+              // --- 3. Self-marking check ---
+              // Checks ALL teams the assignee belongs to — if any team's mentor is this slot's
+              // marker, the assignment is rejected.
+              const markerMatch = issue.body && issue.body.match(/<!--\s*marker-handle:\s*(\S+?)\s*-->/);
+              const markerHandle = markerMatch ? markerMatch[1] : null;
+
+              if (markerHandle) {
+                let teamsRows = [];
+                try {
+                  const csv = fs.readFileSync('data/teams.csv', 'utf8');
+                  teamsRows = parseCsv(csv);
+                } catch (err) {
+                  core.warning(`Could not read data/teams.csv: ${err.message}`);
+                }
+
+                for (const t of assigneeTeams) {
+                  const row = teamsRows.find(
+                    (r) => r.team_name.toLowerCase() === t.name.toLowerCase(),
                   );
-                  return;
+                  const mentorGithub = row ? row.mentor_github : null;
+                  if (mentorGithub && mentorGithub.toLowerCase() === markerHandle.toLowerCase()) {
+                    await removeAssignee();
+                    await postComment(
+                      `⚠️ Self-marking rejected. @${assignee}'s team (${t.name}) is mentored by @${mentorGithub}, who is the marker for this slot. Teams cannot be marked by their own mentor.`,
+                    );
+                    return;
+                  }
                 }
               }
-            }
 
-            // --- 3. Double-booking check ---
-            // Collision if any other open slot's assignee shares any of the same teams.
-            const assigneeTeamSlugs = new Set(assigneeTeams.map((t) => t.slug));
-            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
-              owner: org, repo, state: 'open', labels: 'presentation-slot', per_page: 100,
-            });
+              // --- 4. Double-booking check ---
+              // Collision if any other open slot's assignee shares any of the same teams.
+              const assigneeTeamSlugs = new Set(assigneeTeams.map((t) => t.slug));
+              const openIssues = await withRetry('list open slots', () =>
+                github.paginate(github.rest.issues.listForRepo, {
+                  owner: org, repo, state: 'open', labels: 'presentation-slot', per_page: 100,
+                }),
+              );
 
-            for (const other of openIssues) {
-              if (other.number === issueNumber) continue;
-              if (other.pull_request) continue;
-              if (!other.assignees || other.assignees.length === 0) continue;
-              for (const a of other.assignees) {
-                const otherTeams = await findAllTeamsFor(a.login);
-                const conflict = otherTeams.find((t) => assigneeTeamSlugs.has(t.slug));
-                if (conflict) {
-                  await removeAssignee();
-                  await postComment(
-                    `⚠️ Team already allocated! ${conflict.name} has already been assigned a presentation slot in #${other.number} — ${other.title}. Please unallocate that slot before assigning to a new one. @${assignee}'s assignment has been automatically removed.`,
-                  );
-                  return;
+              for (const other of openIssues) {
+                if (other.number === issueNumber) continue;
+                if (other.pull_request) continue;
+                if (!other.assignees || other.assignees.length === 0) continue;
+                for (const a of other.assignees) {
+                  const otherTeams = findAllTeamsFor(a.login);
+                  const conflict = otherTeams.find((t) => assigneeTeamSlugs.has(t.slug));
+                  if (conflict) {
+                    await removeAssignee();
+                    await postComment(
+                      `⚠️ Team already allocated! ${conflict.name} has already been assigned a presentation slot in #${other.number} — ${other.title}. Please unallocate that slot before assigning to a new one. @${assignee}'s assignment has been automatically removed.`,
+                    );
+                    return;
+                  }
                 }
               }
-            }
 
-            // --- 4. All clear ---
-            const claimingTeam = assigneeTeams[0]; // one slot = one assignee = one team
-            await postComment(
-              `✅ Slot confirmed for ${claimingTeam.name}. @${assignee} has claimed this slot on behalf of their team.\n\n@${org}/${claimingTeam.slug} — your team has been allocated this presentation slot.`,
-            );
+              // --- 5. All clear ---
+              const claimingTeam = assigneeTeams[0]; // one slot = one assignee = one team
+              await postComment(
+                `✅ Slot confirmed for ${claimingTeam.name}. @${assignee} has claimed this slot on behalf of their team.\n\n@${org}/${claimingTeam.slug} — your team has been allocated this presentation slot.`,
+              );
+            } catch (err) {
+              // Surface unrecoverable failures as a comment so students see them in the
+              // issue thread instead of silently in the Actions tab.
+              core.error(`Validation failed: ${err.message}`);
+              try {
+                await postComment(
+                  `⚠️ Validation could not complete for @${assignee}'s claim due to a transient error: \`${err.message}\`. Their assignment has **not** been auto-validated — please unassign and reassign to retry, or contact the instructor if this persists.`,
+                );
+              } catch (commentErr) {
+                core.error(`Failed to post failure comment: ${commentErr.message}`);
+              }
+              throw err;
+            }

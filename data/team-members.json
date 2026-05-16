@@ -1,0 +1,380 @@
+{
+  "snapshot_at": "2026-05-07T07:34:47.675Z",
+  "org": "comp90082-2026-s1",
+  "teams": [
+    {
+      "name": "AB-Koala",
+      "slug": "ab-koala",
+      "members": [
+        "charhl",
+        "junleiL",
+        "mchancfy",
+        "MichaelFu1998-create",
+        "x4z3y"
+      ]
+    },
+    {
+      "name": "AB-Wombat",
+      "slug": "ab-wombat",
+      "members": [
+        "MichaelFu1998-create",
+        "qiyizhu",
+        "Rapeter",
+        "unipirate",
+        "victor8997",
+        "xinyuep1"
+      ]
+    },
+    {
+      "name": "BA-Koala",
+      "slug": "ba-koala",
+      "members": [
+        "Chenwei-Gu",
+        "HayleyLei",
+        "MichaelFu1998-create",
+        "yirul6",
+        "YUNFEIM2-hub",
+        "zqrs23333"
+      ]
+    },
+    {
+      "name": "BA-Wombat",
+      "slug": "ba-wombat",
+      "members": [
+        "Linx-Han",
+        "MichaelFu1998-create",
+        "TT2858",
+        "Web-commited",
+        "xxxbrian",
+        "yxy235"
+      ]
+    },
+    {
+      "name": "BE-Koala",
+      "slug": "be-koala",
+      "members": [
+        "Android-9",
+        "mattcameron24",
+        "MichaelFu1998-create",
+        "oscar-rubinstein",
+        "wilcoxa",
+        "yyy7272"
+      ]
+    },
+    {
+      "name": "BE-Wombat",
+      "slug": "be-wombat",
+      "members": [
+        "cheeseeeyw",
+        "couragepeace",
+        "MichaelFu1998-create",
+        "Skylar34380",
+        "xjyyyyyyyyyy",
+        "Yancie233"
+      ]
+    },
+    {
+      "name": "BV-Koala",
+      "slug": "bv-koala",
+      "members": [
+        "Jason091803",
+        "KelvinDu08",
+        "LeoLeoLeo200",
+        "MichaelFu1998-create",
+        "RoyX0423",
+        "TaoDeng-1117",
+        "XiaoyongChen-34"
+      ]
+    },
+    {
+      "name": "CL-Koala",
+      "slug": "cl-koala",
+      "members": [
+        "jiazhaot",
+        "kzzhe2333",
+        "MichaelFu1998-create",
+        "RakerZh",
+        "yiff028",
+        "ZY2amor"
+      ]
+    },
+    {
+      "name": "CL-Wombat",
+      "slug": "cl-wombat",
+      "members": [
+        "englishing456",
+        "MichaelFu1998-create",
+        "Ricky200202",
+        "RuilinXing",
+        "YILINWANG16Unimelb",
+        "YUNNANJ"
+      ]
+    },
+    {
+      "name": "CO-Koala",
+      "slug": "co-koala",
+      "members": [
+        "Douglath",
+        "HarlGuo",
+        "Lastyuans",
+        "Maanas-Kunchala",
+        "Maxchioa",
+        "MichaelFu1998-create",
+        "yankaiiw"
+      ]
+    },
+    {
+      "name": "DE-Koala",
+      "slug": "de-koala",
+      "members": [
+        "Cici-xyu",
+        "Kangchen-Ye",
+        "MichaelFu1998-create",
+        "Qi2412",
+        "SputnikTravel",
+        "YikaPanic"
+      ]
+    },
+    {
+      "name": "DE-Wombat",
+      "slug": "de-wombat",
+      "members": [
+        "gangGang-d",
+        "luochanb",
+        "Mia-Yiming",
+        "MichaelFu1998-create",
+        "MuzhiMoussE",
+        "yutingwang999"
+      ]
+    },
+    {
+      "name": "DT-Koala",
+      "slug": "dt-koala",
+      "members": [
+        "GCQ2002",
+        "JerrieYe",
+        "MichaelFu1998-create",
+        "Wenxin20968",
+        "YangboyaZhang",
+        "yclaireyyy"
+      ]
+    },
+    {
+      "name": "DT-Wombat",
+      "slug": "dt-wombat",
+      "members": [
+        "dived42",
+        "MichaelFu1998-create",
+        "outoffantasy",
+        "RuipuCui",
+        "XINYIHUANG1",
+        "YuechengWang02"
+      ]
+    },
+    {
+      "name": "KU-Koala",
+      "slug": "ku-koala",
+      "members": [
+        "congyebai",
+        "derrickrighthere",
+        "MichaelFu1998-create",
+        "SiruLiu1554615",
+        "XiaokeJi888",
+        "yufcao"
+      ]
+    },
+    {
+      "name": "KU-Wombat",
+      "slug": "ku-wombat",
+      "members": [
+        "Ann12345678906",
+        "ForeverJ4cky",
+        "junwus",
+        "MichaelFu1998-create",
+        "yyz042",
+        "Zikki-Qing"
+      ]
+    },
+    {
+      "name": "LL-Koala",
+      "slug": "ll-koala",
+      "members": [
+        "AbCats",
+        "ChrisReadyForIT",
+        "Himekaovo",
+        "Lydia1122990",
+        "MichaelFu1998-create",
+        "myyyyyok"
+      ]
+    },
+    {
+      "name": "LL-Wombat",
+      "slug": "ll-wombat",
+      "members": [
+        "leileilllll",
+        "Loisannn",
+        "MichaelFu1998-create",
+        "SherryShan3",
+        "XYAN0612",
+        "Yifi1024"
+      ]
+    },
+    {
+      "name": "MU-Koala",
+      "slug": "mu-koala",
+      "members": [
+        "junqihaung",
+        "MichaelFu1998-create",
+        "Mingyu-Chen126",
+        "Momoyu404",
+        "Rosreve",
+        "zihangy2"
+      ]
+    },
+    {
+      "name": "MU-Wombat",
+      "slug": "mu-wombat",
+      "members": [
+        "cookie-roki",
+        "Gavin1017",
+        "Haoran-Yan87",
+        "Kee386735501",
+        "MichaelFu1998-create",
+        "SW1323"
+      ]
+    },
+    {
+      "name": "RP-Koala",
+      "slug": "rp-koala",
+      "members": [
+        "bernardivand",
+        "CWTWIS",
+        "jiexiangfan",
+        "mhzhou2025",
+        "MichaelFu1998-create",
+        "victorjuntengng"
+      ]
+    },
+    {
+      "name": "RP-Wombat",
+      "slug": "rp-wombat",
+      "members": [
+        "Arsit1555",
+        "chrispei1101",
+        "cyclopentadiene6",
+        "DoubleSea777",
+        "lyw0506",
+        "MichaelFu1998-create"
+      ]
+    },
+    {
+      "name": "RV-Koala",
+      "slug": "rv-koala",
+      "members": [
+        "hazakuraQwQ",
+        "iveelaine",
+        "Malu1170302",
+        "MichaelFu1998-create",
+        "Parzicoco",
+        "ram6299"
+      ]
+    },
+    {
+      "name": "RV-Wombat",
+      "slug": "rv-wombat",
+      "members": [
+        "Adam-YY",
+        "JieyangZhu",
+        "MichaelFu1998-create",
+        "MYY2",
+        "ShenboJiang",
+        "xlRuilinlx"
+      ]
+    },
+    {
+      "name": "SI-Koala",
+      "slug": "si-koala",
+      "members": [
+        "chris-kun214",
+        "Iliana678",
+        "MichaelFu1998-create",
+        "RuizeLyu",
+        "Stanleyy1",
+        "TONGWANG3"
+      ]
+    },
+    {
+      "name": "SI-Wombat",
+      "slug": "si-wombat",
+      "members": [
+        "ColeH6767",
+        "Iu-E",
+        "MichaelFu1998-create",
+        "RITAccAir",
+        "stfdtj",
+        "Wankayc"
+      ]
+    },
+    {
+      "name": "SO-Koala",
+      "slug": "so-koala",
+      "members": [
+        "Cynwell-Liao",
+        "dingjw1997",
+        "Hashcher",
+        "KakaYannn",
+        "kso4more-bit",
+        "melikab",
+        "MichaelFu1998-create"
+      ]
+    },
+    {
+      "name": "UC-Koala",
+      "slug": "uc-koala",
+      "members": [
+        "anran0217",
+        "chsc4",
+        "MichaelFu1998-create",
+        "RosieLiu626",
+        "Stargazer2002",
+        "Susa0823"
+      ]
+    },
+    {
+      "name": "UC-Wombat",
+      "slug": "uc-wombat",
+      "members": [
+        "Alzlfa",
+        "andrewrizqi00",
+        "ecahyanto",
+        "lulululuis",
+        "MichaelFu1998-create",
+        "stdclair"
+      ]
+    },
+    {
+      "name": "VE-Koala",
+      "slug": "ve-koala",
+      "members": [
+        "chbenz",
+        "MichaelFu1998-create",
+        "stepphennnn",
+        "wenzeZeng443",
+        "zhai1027",
+        "ZhuoYuLi4396"
+      ]
+    },
+    {
+      "name": "VE-Wombat",
+      "slug": "ve-wombat",
+      "members": [
+        "banb129",
+        "FengyuLiao",
+        "MichaelFu1998-create",
+        "Nikol23333",
+        "Yingying815",
+        "Yufei-Yao29"
+      ]
+    }
+  ]
+}
