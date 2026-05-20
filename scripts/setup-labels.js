@@ -9,7 +9,7 @@ const DESCRIPTION = "Student presentation slot";
 async function main() {
   if (!process.env.GITHUB_TOKEN) throw new Error("GITHUB_TOKEN not set");
   const { owner, repo } = getOwnerRepo();
-  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN, headers: { "X-GitHub-Api-Version": "2022-11-28" } });
 
   try {
     await octokit.issues.getLabel({ owner, repo, name: LABEL });

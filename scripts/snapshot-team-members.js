@@ -21,7 +21,7 @@ async function main() {
   if (!process.env.GITHUB_TOKEN) throw new Error("GITHUB_TOKEN not set");
 
   const { owner: org } = getOwnerRepo();
-  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN, headers: { "X-GitHub-Api-Version": "2022-11-28" } });
 
   // Only snapshot teams declared in data/teams.csv. The org may contain test,
   // admin, or unrelated teams; including them in the snapshot would let

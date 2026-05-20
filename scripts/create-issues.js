@@ -129,7 +129,7 @@ async function main() {
   }
 
   const { owner, repo } = getOwnerRepo();
-  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN, headers: { "X-GitHub-Api-Version": "2022-11-28" } });
   const gql = graphql.defaults({
     headers: { authorization: `token ${process.env.GITHUB_TOKEN}` },
   });
