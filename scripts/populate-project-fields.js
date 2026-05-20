@@ -9,6 +9,13 @@ const ASSIGNED_TEAM_FIELD = "Assigned Team";
 const SIX_STUDENTS_FIELD = "6 Students";
 const SIX_STUDENTS_VALUE = "V";
 
+// Org members that appear in student teams but are not students themselves
+// (e.g. head tutor / course coordinator added to all team rosters).
+// Compared case-insensitively against the snapshot's `members` logins.
+const EXCLUDED_LOGINS = new Set(
+  ["MichaelFu1998-create"].map((l) => l.toLowerCase())
+);
+
 async function resolveProject(gql, owner, number) {
   const query = `
     query($owner: String!, $number: Int!) {
@@ -39,6 +46,16 @@ async function resolveProject(gql, owner, number) {
   if (!sixStudentsField) console.warn(`⚠  No '${SIX_STUDENTS_FIELD}' field on project — will skip.`);
 
   return { projectId: project.id, assignedTeamField, sixStudentsField };
+}
+
+async function clearField(gql, { projectId, itemId, field }) {
+  const mutation = `
+    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!) {
+      clearProjectV2ItemFieldValue(input: {
+        projectId: $projectId, itemId: $itemId, fieldId: $fieldId
+      }) { projectV2Item { id } }
+    }`;
+  await gql(mutation, { projectId, itemId, fieldId: field.id });
 }
 
 async function setField(gql, { projectId, itemId, field, value }) {
@@ -158,17 +175,25 @@ async function main() {
     }
 
     const team = assigneeTeams[0];
-    const memberCount = memberSets.get(team.slug).size;
+    const allMembers = [...memberSets.get(team.slug)];
+    const studentCount = allMembers.filter(
+      (m) => !EXCLUDED_LOGINS.has(m.toLowerCase())
+    ).length;
+    const isSix = studentCount === 6;
 
     try {
       if (assignedTeamField) {
         await setField(gql, { projectId, itemId: item.id, field: assignedTeamField, value: team.name });
       }
-      if (sixStudentsField && memberCount === 6) {
-        await setField(gql, { projectId, itemId: item.id, field: sixStudentsField, value: SIX_STUDENTS_VALUE });
+      if (sixStudentsField) {
+        if (isSix) {
+          await setField(gql, { projectId, itemId: item.id, field: sixStudentsField, value: SIX_STUDENTS_VALUE });
+        } else {
+          await clearField(gql, { projectId, itemId: item.id, field: sixStudentsField });
+        }
       }
       console.log(
-        `  ✅ #${issue.number}: team='${team.name}' members=${memberCount}${memberCount === 6 ? " → 6 Students=V" : ""}`
+        `  ✅ #${issue.number}: team='${team.name}' students=${studentCount} (raw=${allMembers.length})${isSix ? " → 6 Students=V" : " → 6 Students cleared"}`
       );
       updated++;
     } catch (err) {
