@@ -1,5 +1,5 @@
 {
-  "snapshot_at": "2026-05-07T07:34:47.675Z",
+  "snapshot_at": "2026-05-20T04:58:02.362Z",
   "org": "comp90082-2026-s1",
   "teams": [
     {
@@ -326,6 +326,24 @@
         "kso4more-bit",
         "melikab",
         "MichaelFu1998-create"
+      ]
+    },
+    {
+      "name": "test-team1",
+      "slug": "test-team1",
+      "members": [
+        "dinuka-rp",
+        "saurabhzingade"
+      ]
+    },
+    {
+      "name": "test-team2",
+      "slug": "test-team2",
+      "members": [
+        "dinuka-rp",
+        "HaoGuan-1",
+        "mmohoni",
+        "zedwechsler"
       ]
     },
     {
